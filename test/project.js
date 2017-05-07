@@ -9,16 +9,21 @@ function wait(ms){
 }
 
 contract('Project', function(accounts) {
-    
-  // it("should put 10000 MetaCoin in the first account", function() {
-  //   return Project.deployed().then(function(instance) {
-  //       wait(500);
-  //       return instance.payout({from:accounts[0]});
-  //   }).then(function(result) {
-  //       for(var event of result.logs) {
-  //           console.log(event.args)
-  //       }
-  //       assert.equal(true, true, "life is true");
-  //   });
-  // });
+    var project;
+    var succssfullEvent
+    it("should be 0 amount raised after a succssfull payout", function() {
+        return Project.deployed().then(function(instance) {
+            project = instance;
+            return project.fund(web3.toWei(1), {from:accounts[0]});
+        }).then(function(result) {
+            wait(500);
+            return project.payout({from:accounts[0], gas:300000});
+        }).then(function(result) {
+            succssfullEvent = result.logs[0].event
+            return project.raisedAmount.call()
+        }).then(function(result) {
+            assert.equal(succssfullEvent, 'payoutSuccessful', 'Did not get payoutSuccessful event')
+            assert.equal(result.toNumber(), 0, 'Raised amount has not been reset');
+        })
+    })
 });
