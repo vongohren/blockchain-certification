@@ -1,4 +1,4 @@
-pragma solidity ^0.4.8;
+pragma solidity ^0.4.11;
 
 import './Project.sol';
 
@@ -18,9 +18,9 @@ contract FundingHub {
       projects[_name] = newProject;
   }
 
-  function contribute(address _address, uint amount) payable {
+  function contribute(address _address) payable {
       Project project = Project(_address);
-      project.fund(amount);
+      project.fund();
   }
 
   function kill() restricted {
