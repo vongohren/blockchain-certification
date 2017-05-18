@@ -7,7 +7,18 @@ body {
 
 label {
   display: inline-block;
-  width: 100px;
+}
+
+#projects {
+    margin-top: 15px;
+}
+
+#input {
+    margin-top: 40px;
+}
+
+#create-button{
+    margin-top:10px;
 }
 
 input {

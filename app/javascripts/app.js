@@ -1,89 +1,169 @@
-// Import the page's CSS. Webpack will know what to do with it.
 import "../stylesheets/app.css";
-
-// Import libraries we need.
 import { default as Web3} from 'web3';
 import { default as contract } from 'truffle-contract'
+import fundinghub_artifacts from '../../build/contracts/FundingHub.json'
+import project_artifacts from '../../build/contracts/Project.json'
+import $ from 'jquery'
+import mustache from 'mustache'
+import projectTemplate from '../templates/projects'
+import accountTemplate from '../templates/account-selector'
+import moment from 'moment'
 
-// Import our contract artifacts and turn them into usable abstractions.
-import metacoin_artifacts from '../../build/contracts/MetaCoin.json'
+var FundingHub = contract(fundinghub_artifacts);
+var Project = contract(project_artifacts);
 
-// MetaCoin is our usable abstraction, which we'll use through the code below.
-var MetaCoin = contract(metacoin_artifacts);
 
-// The following code is simple to show off interacting with your contracts.
-// As your needs grow you will likely need to change its form and structure.
-// For application bootstrapping, check out window.addEventListener below.
+var fundingHubInstance;
 var accounts;
 var account;
 
 window.App = {
-  start: function() {
-    var self = this;
+    start: function() {
+        var self = this;
+        $('#projects').on('click',function(e) {
+            var address = $(e.target).data('address')
+            console.log(address)
+            if(address) {
+                self.fundProject(address);
+            }
+        })
+        $('#accounts').on('change',function(e) {
+            account = $(e.target).val();
+        })
 
-    // Bootstrap the MetaCoin abstraction for Use.
-    MetaCoin.setProvider(web3.currentProvider);
+        $('#create-form').submit(function(e) {
+            e.preventDefault();
+            var $inputs = $('#create-form :input')
+            var values = {};
+            $inputs.each(function() {
+                if(this.name) values[this.name] = $(this).val();
+            });
+            values.amount = web3.toWei(values.amount);
+            values.date = moment(values.date).format('x')/1000
+            self.createProject(values);
+        })
+        FundingHub.setProvider(web3.currentProvider);
+        Project.setProvider(web3.currentProvider);
+        FundingHub.deployed().then(function(instance) {
+            fundingHubInstance = instance;
+            self.getProjects();
+        })
 
-    // Get the initial account balance so it can be displayed.
-    web3.eth.getAccounts(function(err, accs) {
-      if (err != null) {
-        alert("There was an error fetching your accounts.");
-        return;
-      }
+        this.getAvailableAccounts();
+    },
 
-      if (accs.length == 0) {
-        alert("Couldn't get any accounts! Make sure your Ethereum client is configured correctly.");
-        return;
-      }
+    getProjects() {
+        var self = this;
+        fundingHubInstance.getProjects.call().then(function(projects) {
+            self.showProjects(projects)
+        })
+    },
 
-      accounts = accs;
-      account = accounts[0];
+    getAvailableAccounts() {
+        var self = this;
+        web3.eth.getAccounts(function(err, accs) {
+          if (err != null) {
+            alert("There was an error fetching your accounts.");
+            return;
+          }
 
-      self.refreshBalance();
-    });
-  },
+          if (accs.length == 0) {
+            alert("Couldn't get any accounts! Make sure your Ethereum client is configured correctly.");
+            return;
+          }
 
-  setStatus: function(message) {
-    var status = document.getElementById("status");
-    status.innerHTML = message;
-  },
+          accounts = accs;
+          if(!account) {
+            account = accounts[0];
+          }
 
-  refreshBalance: function() {
-    var self = this;
+          self.loadAccountsHtml(accounts);
+        });
+    },
 
-    var meta;
-    MetaCoin.deployed().then(function(instance) {
-      meta = instance;
-      return meta.getBalance.call(account, {from: account});
-    }).then(function(value) {
-      var balance_element = document.getElementById("balance");
-      balance_element.innerHTML = value.valueOf();
-    }).catch(function(e) {
-      console.log(e);
-      self.setStatus("Error getting balance; see log.");
-    });
-  },
+    loadAccountsHtml(accounts) {
+        var data = {};
+        data.accounts = []
+        for(var acc of accounts) {
+            var obj = {}
+            if(acc === account) {
+                obj.selected = true;
+            }
+            obj.balance= web3.fromWei(web3.eth.getBalance(acc))
+            obj.address = acc;
+            data.accounts.push(obj)
+        }
 
-  sendCoin: function() {
-    var self = this;
+        var accountDom = $("#accounts");
+        var html = mustache.render(accountTemplate, data)
+        accountDom.html(html)
+    },
 
-    var amount = parseInt(document.getElementById("amount").value);
-    var receiver = document.getElementById("receiver").value;
+    createProject(values) {
+        var self = this;
+        console.log(account)
+        fundingHubInstance.createProject(values.name, account, values.amount, values.date, {from:account, gas:500000}).then(function(result) {
+            console.log(result);
+            self.getProjects()
+        })
+    },
 
-    this.setStatus("Initiating transaction... (please wait)");
+    fundProject(address) {
+        var self = this;
+        Project.at(address).then(function(instance) {
+            return instance.fund({from:account, value:web3.toWei(1)})
+        }).then(function(result) {
+            console.log(result.logs[0])
+            self.fetchData(address)
+            self.getAvailableAccounts()
+        })
+    },
 
-    var meta;
-    MetaCoin.deployed().then(function(instance) {
-      meta = instance;
-      return meta.sendCoin(receiver, amount, {from: account});
-    }).then(function() {
-      self.setStatus("Transaction complete!");
-      self.refreshBalance();
-    }).catch(function(e) {
-      console.log(e);
-      self.setStatus("Error sending coin; see log.");
-    });
-  }
+    fetchData: function(project) {
+        var self = this;
+        var address = project
+        var name;
+        var amountToBeRaised;
+        var raisedAmount;
+        var instance;
+        Project.at(project).then(function(_instance) {
+            instance=_instance;
+            return instance.name.call()
+        }).then(function(_name,var1) {
+            name = _name
+            return instance.amountToBeRaised.call()
+        }).then(function(_amountToBeRaised) {
+            amountToBeRaised = _amountToBeRaised
+            return instance.raisedAmount.call()
+        }).then(function(_raisedAmount) {
+            raisedAmount = _raisedAmount;
+            var projectData = {}
+            projectData.name = web3.toAscii(name)
+            projectData.amountToBeRaised = web3.fromWei(amountToBeRaised);
+            projectData.address = address;
+            projectData.raisedAmount = web3.fromWei(raisedAmount);
+            self.renderHtml(projectData)
+        })
+    },
+
+    showProjects: function(projects) {
+        var self = this;
+        for(var project of projects) {
+            self.fetchData(project);
+        }
+    },
+
+    renderHtml: function(projectData) {
+        var projectsDom = $("#projects");
+        var html = mustache.render(projectTemplate, projectData)
+        var dom = $('#'+projectData.address)
+        if(dom.length) {
+            dom.html(html)
+        } else {
+            projectsDom.append(html)
+        }
+
+    }
 };
 
 window.addEventListener('load', function() {

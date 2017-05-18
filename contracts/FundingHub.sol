@@ -4,8 +4,9 @@ import './Project.sol';
 
 contract FundingHub {
   address public owner;
-  mapping (bytes32 => address) public projects;
+  address[] public projectAddresses;
 
+  event projectCreatedSuccessfully(address adr);
 
   modifier restricted() { if(msg.sender == owner) _; }
 
@@ -14,13 +15,18 @@ contract FundingHub {
   }
 
   function createProject(bytes32 _name, address _owner, uint _amountToBeRaised, uint unixDeadline)  {
-      address newProject = new Project(_owner, _amountToBeRaised, unixDeadline);
-      projects[_name] = newProject;
+      address newProject = new Project(_name, _owner, _amountToBeRaised, unixDeadline);
+      projectAddresses.push(newProject);
+      projectCreatedSuccessfully(newProject);
   }
 
   function contribute(address _address) payable {
       Project project = Project(_address);
       project.fund();
+  }
+
+  function getProjects() returns (address[]) {
+      return projectAddresses;
   }
 
   function kill() restricted {

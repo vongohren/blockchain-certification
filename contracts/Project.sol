@@ -1,14 +1,14 @@
-pragma solidity ^0.4.8;
+pragma solidity ^0.4.11;
 
 contract Project {
   address owner;
   uint public amountToBeRaised;
   uint public fundedDate;
   uint public raisedAmount;
-
+  bytes32 public name;
   mapping (address => uint) public contributors;
-  event broadCastInt(uint thing);
-  event broadCastAddress(address add);
+  address[] public contributorsArray;
+
   event payoutSuccessful(uint amount);
   event fundingSuccessful();
   event refundSuccessful();
@@ -21,16 +21,22 @@ contract Project {
   modifier onlyIfNotFunded() { if(raisedAmount < amountToBeRaised) _; }
   modifier onlyIfHaveMoney() { require(contributors[msg.sender] > 0); _; }
 
-  function Project(address _owner, uint _amountToBeRaised, uint _fundedDate) {
+  function Project(bytes32 _name, address _owner, uint _amountToBeRaised, uint _fundedDate) {
     owner = _owner;
+    name = _name;
     amountToBeRaised = _amountToBeRaised;
     fundedDate = _fundedDate;
     raisedAmount = 0;
   }
 
+  function getName() returns(bytes32) {
+      return name;
+  }
+
   function fund() payable onlyIfNotFunded {
       raisedAmount += msg.value;
       contributors[msg.sender] = msg.value;
+      contributorsArray.push(msg.sender);
       fundingSuccessful();
   }
 
