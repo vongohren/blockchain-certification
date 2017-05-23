@@ -22,7 +22,6 @@ window.App = {
         var self = this;
         $('#projects').on('click',function(e) {
             var address = $(e.target).data('address')
-            console.log(address)
             if(address) {
                 self.fundProject(address);
             }
@@ -47,6 +46,9 @@ window.App = {
         FundingHub.deployed().then(function(instance) {
             fundingHubInstance = instance;
             self.getProjects();
+        }).catch(function(e) {
+            console.log(e)
+            $('body').html('FundingHub contract is not found on this blockchain instance. Please deploy it and refresh the web app, or maybe your chain instance is not running?')
         })
 
         this.getAvailableAccounts();
@@ -63,7 +65,7 @@ window.App = {
         var self = this;
         web3.eth.getAccounts(function(err, accs) {
           if (err != null) {
-            alert("There was an error fetching your accounts.");
+            console.log("There was an error fetching your accounts.");
             return;
           }
 
@@ -101,7 +103,6 @@ window.App = {
 
     createProject(values) {
         var self = this;
-        console.log(account)
         fundingHubInstance.createProject(values.name, account, values.amount, values.date, {from:account, gas:500000}).then(function(result) {
             console.log(result);
             self.getProjects()
@@ -110,10 +111,9 @@ window.App = {
 
     fundProject(address) {
         var self = this;
-        Project.at(address).then(function(instance) {
-            return instance.fund({from:account, value:web3.toWei(1)})
-        }).then(function(result) {
-            console.log(result.logs[0])
+        fundingHubInstance.contribute(address, {from:account, gas:180000, value:web3.toWei(1)})
+        .then(function(result) {
+            console.log(result)
             self.fetchData(address)
             self.getAvailableAccounts()
         })
@@ -126,6 +126,8 @@ window.App = {
         var amountToBeRaised;
         var raisedAmount;
         var instance;
+        var fundedDate;
+        var contributors;
         Project.at(project).then(function(_instance) {
             instance=_instance;
             return instance.name.call()
@@ -136,12 +138,20 @@ window.App = {
             amountToBeRaised = _amountToBeRaised
             return instance.raisedAmount.call()
         }).then(function(_raisedAmount) {
-            raisedAmount = _raisedAmount;
+            raisedAmount = _raisedAmount
+            return instance.fundedDate.call()
+        }).then(function(_fundedDate) {
+            fundedDate = _fundedDate;
+            return instance.getContributors.call()
+        }).then(function(_contributors) {
+            contributors = _contributors;
             var projectData = {}
             projectData.name = web3.toAscii(name)
             projectData.amountToBeRaised = web3.fromWei(amountToBeRaised);
             projectData.address = address;
             projectData.raisedAmount = web3.fromWei(raisedAmount);
+            projectData.fundedDate = moment(fundedDate*1000).format('DD MMMM YYYY')
+            projectData.contributors = contributors
             self.renderHtml(projectData)
         })
     },

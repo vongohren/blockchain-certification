@@ -40,26 +40,23 @@ contract('FundingHub', function(accounts) {
     //     })
     // });
 
-    it("FundingHub iterate test", function() {
-        var fundingInst;
-        var projects;
-        return FundingHub.deployed().then(function(instance) {
-            fundingInst = instance
-            return instance.createProject("doesthiswork", accounts[0], 3, (+new Date)/1000)
-        }).then(function(result) {
-            return fundingInst.getProjects.call()
-        }).then(function(result) {
-            console.log("RESULT 1")
-            projects = result
-            var project = Project.at(projects[0])
-
-            return project.amountToBeRaised.call()
-        }).then(function(amount) {
-            console.log(amount)
-            var project = Project.at(projects[1])
-            return project.amountToBeRaised.call()
-        }).then(function(amount) {
-            console.log(amount)
-        })
-    });
+    // it("FundingHub iterate test", function() {
+    //     var fundingInst;
+    //     var projects;
+    //     return FundingHub.deployed().then(function(instance) {
+    //         fundingInst = instance
+    //         return instance.createProject("doesthiswork", accounts[0], 3, (+new Date)/1000)
+    //     }).then(function(result) {
+    //         return fundingInst.getProjects.call()
+    //     }).then(function(result) {
+    //         projects = result
+    //         var project = Project.at(projects[0])
+    //
+    //         return project.amountToBeRaised.call()
+    //     }).then(function(amount) {
+    //         var project = Project.at(projects[1])
+    //         return project.amountToBeRaised.call()
+    //     }).then(function(amount) {
+    //     })
+    // });
 });

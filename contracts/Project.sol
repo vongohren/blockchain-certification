@@ -10,7 +10,7 @@ contract Project {
   address[] public contributorsArray;
 
   event payoutSuccessful(uint amount);
-  event fundingSuccessful();
+  event fundingSuccessful(address adr);
   event refundSuccessful();
 
   modifier restricted() { require(msg.sender == owner); _; }
@@ -29,15 +29,18 @@ contract Project {
     raisedAmount = 0;
   }
 
-  function getName() returns(bytes32) {
-      return name;
+  function getContributors() returns (address[]) {
+      return contributorsArray;
   }
 
-  function fund() payable onlyIfNotFunded {
-      raisedAmount += msg.value;
-      contributors[msg.sender] = msg.value;
-      contributorsArray.push(msg.sender);
-      fundingSuccessful();
+  function fund(address _sender) payable {
+      var amount = msg.value;
+      raisedAmount += amount;
+      if(contributors[_sender] == 0) {
+          contributorsArray.push(_sender);
+      }
+      contributors[_sender] += amount;
+      fundingSuccessful(_sender);
   }
 
   function payout() restricted onlyAfterFundedDate onlyIfFunded {

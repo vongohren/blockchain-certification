@@ -30,13 +30,13 @@ contract('Project', function(accounts) {
         var donatorTwoBalanceBefore = web3.eth.getBalance(donatorTwo);
         var donatorOneGasUsed;
         var donatorTwoGasUsed;
-        Project.new(owner, amountToBeRaised, fundedDate ).then(function(projectIns) {
+        Project.new('Dog', owner, amountToBeRaised, fundedDate ).then(function(projectIns) {
             projectInstance = projectIns;
-            return projectInstance.fund({from:donatorOne, value:web3.toWei(1)})
+            return projectInstance.fund(donatorOne, {from:donatorOne, value:web3.toWei(1)})
         }).then(function(result){
             result.logs[0].event === 'fundingSuccessful' ? fundingEvents.push(result.logs[0]) : console.log(result.logs[0].event)
             donatorOneGasUsed = calculateGas(web3, result);
-            return projectInstance.fund({from:donatorTwo, value:web3.toWei(1)})
+            return projectInstance.fund(donatorTwo, {from:donatorTwo, value:web3.toWei(1)})
         }).then(function(result){
             result.logs[0].event === 'fundingSuccessful' ? fundingEvents.push(result.logs[0]) : console.log(result.logs[0].event)
             donatorTwoGasUsed = calculateGas(web3, result);
@@ -44,11 +44,11 @@ contract('Project', function(accounts) {
             return projectInstance.refund({from:donatorOne})
         }).then(function(result){
             donatorOneGasUsed = donatorOneGasUsed.add(calculateGas(web3, result));
-            result.logs[0].event === 'refundSuccessful' ? refundEvents.push(result.logs[0]) : console.log(result.logs[0].event)
+            result.logs[0].event === 'refundSuccessful' ? refundEvents.push(result.logs[0]) : console.log('Recieved wrong event', result.logs[0].event)
             return projectInstance.refund({from:donatorTwo})
         }).then(function(result){
             donatorTwoGasUsed = donatorTwoGasUsed.add(calculateGas(web3, result));
-            result.logs[0].event === 'refundSuccessful' ? refundEvents.push(result.logs[0]) : console.log(result.logs[0].event)
+            result.logs[0].event === 'refundSuccessful' ? refundEvents.push(result.logs[0]) : console.log('Recieved wrong event', result.logs[0].event)
             return projectInstance.raisedAmount.call()
         }).then(function(amount) {
             var donatorOneBalanceAfter = web3.eth.getBalance(donatorOne)
@@ -72,12 +72,12 @@ contract('Project', function(accounts) {
         var afterFundingBalance;
         var gasUsage;
         var gasPrice;
-        Project.new(accounts[0], 1, (+new Date)/1000).then(function(projectIns) {
+        Project.new('Cat', accounts[0], 1, (+new Date)/1000).then(function(projectIns) {
             balanceBefore = web3.eth.getBalance(accounts[2]);
             beforeFundingBalance = web3.eth.getBalance(accounts[1]);
             project = projectIns;
             var value = web3.toWei(1);
-            return project.fund({from:accounts[1], value: value, gas:200000});
+            return project.fund(accounts[1], {from:accounts[1], value: value, gas:200000});
         }).then(function(result) {
             gasPrice = web3.eth.getTransaction(result.receipt.transactionHash).gasPrice;
             gasUsage = web3.toBigNumber(result.receipt.cumulativeGasUsed).times(gasPrice);

@@ -1,8 +1,8 @@
 body {
-  margin-left: 25%;
-  margin-right: 25%;
+  margin: 0 auto;
   margin-top: 10%;
   font-family: "Open Sans", sans-serif;
+  max-width: 550px;
 }
 
 label {
@@ -19,6 +19,26 @@ label {
 
 #create-button{
     margin-top:10px;
+}
+
+.fund {
+    display: block;
+    text-align: center;
+    border: 1px solid;
+    padding: 2px;
+    margin-top:8px;
+}
+
+#projects {
+    display: flex;
+    flex-flow: row wrap;
+}
+
+#projects div {
+    padding: 6px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
 }
 
 input {

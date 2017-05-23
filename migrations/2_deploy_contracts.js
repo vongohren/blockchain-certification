@@ -1,5 +1,6 @@
 var Project = artifacts.require("./Project.sol");
 var FundingHub = artifacts.require("./FundingHub.sol");
+var moment = require('moment')
 
 module.exports = function(deployer, network, accounts) {
     if(network === 'development') {
@@ -14,10 +15,9 @@ module.exports = function(deployer, network, accounts) {
             return FundingHub.deployed();
         }).then(function(instance){
             fund = instance;
-            return fund.createProject("test", accounts[0], web3.toWei(100), (+new Date)/1000)
+            return fund.createProject("New house", accounts[0], web3.toWei(100), moment().add(10,'day').format('x')/1000)
         }).then(function(result) {
-            console.log(result.logs[0].args)
-            return fund.createProject("test2", accounts[0], web3.toWei(50), (+new Date)/1000)
+            return fund.createProject("Sick dog", accounts[0], web3.toWei(50), moment().add(20,'day').format('x')/1000)
         })
     }
 };

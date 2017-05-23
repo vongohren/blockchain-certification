@@ -11,5 +11,6 @@ I have chosen to go with the withdraw pattern, cause a gigantic loop, with a tim
 ### Payout/payoutTo
 Iv added a payout / payoutTo method to be able to payout to a different address than the owner address.
 
-### Fund method
-Could consider a Staging pattern here!!!!
+
+### State Machine
+A known pattern is the state machine, and this could be a well used pattern here for the contract will be in mulitple different states. Iv decided just to take a note on it rather then implement because of lack of time. But a nice reference to it can be found here: http://solidity.readthedocs.io/en/develop/common-patterns.html#state-machine
