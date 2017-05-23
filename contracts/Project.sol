@@ -16,9 +16,11 @@ contract Project {
   modifier restricted() { require(msg.sender == owner); _; }
 
   modifier onlyAfterFundedDate() { require(now >= fundedDate); _;}
-  modifier onlyBeforeFundedDate() { if(now < fundedDate) _;}
+
+  modifier onlyBeforeFundedDate() { if(now < fundedDate) {_;}else {throw;}}
+  
   modifier onlyIfFunded() { require(raisedAmount >= amountToBeRaised); _; }
-  modifier onlyIfNotFunded() { if(raisedAmount < amountToBeRaised) _; }
+  modifier onlyIfNotFunded() { require(raisedAmount < amountToBeRaised); _; }
   modifier onlyIfHaveMoney() { require(contributors[msg.sender] > 0); _; }
 
   function Project(bytes32 _name, address _owner, uint _amountToBeRaised, uint _fundedDate) {
@@ -33,7 +35,7 @@ contract Project {
       return contributorsArray;
   }
 
-  function fund(address _sender) payable {
+  function fund(address _sender) payable onlyIfNotFunded {
       var amount = msg.value;
       raisedAmount += amount;
       if(contributors[_sender] == 0) {
