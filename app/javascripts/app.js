@@ -103,7 +103,7 @@ window.App = {
 
     createProject(values) {
         var self = this;
-        fundingHubInstance.createProject(values.name, account, values.amount, values.date, {from:account, gas:500000}).then(function(result) {
+        fundingHubInstance.createProject(values.name, account, values.amount, values.date, {from:account, gas:650000}).then(function(result) {
             console.log(result);
             self.getProjects()
         })
@@ -111,7 +111,7 @@ window.App = {
 
     fundProject(address) {
         var self = this;
-        fundingHubInstance.contribute(address, {from:account, gas:180000, value:web3.toWei(1)})
+        fundingHubInstance.contribute(address, {from:account, gas:270000, value:web3.toWei(1)})
         .then(function(result) {
             console.log(result)
             self.fetchData(address)
@@ -130,6 +130,20 @@ window.App = {
         var contributors;
         Project.at(project).then(function(_instance) {
             instance=_instance;
+            _instance.payoutIsAvailable({}).watch(function(error, result) {
+                if(error) {
+                    console.log(error)
+                } else {
+                    console.log(result)
+                }
+            })
+            _instance.refundIsAvailable({}).watch(function(error, result) {
+                if(error) {
+                    console.log(error)
+                } else {
+                    console.log(result)
+                }
+            })
             return instance.name.call()
         }).then(function(_name,var1) {
             name = _name

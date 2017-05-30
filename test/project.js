@@ -30,17 +30,20 @@ contract('Project', function(accounts) {
         var donatorTwoBalanceBefore = web3.eth.getBalance(donatorTwo);
         var donatorOneGasUsed;
         var donatorTwoGasUsed;
+        var fundingSuccessfulEvent = 'fundingSuccessful';
         Project.new('Dog', owner, amountToBeRaised, fundedDate ).then(function(projectIns) {
             projectInstance = projectIns;
             return projectInstance.fund(donatorOne, {from:donatorOne, value:web3.toWei(1)})
         }).then(function(result){
-            result.logs[0].event === 'fundingSuccessful' ? fundingEvents.push(result.logs[0]) : console.log(result.logs[0].event)
+            var log = result.logs[0]
+            log.event === fundingSuccessfulEvent ? fundingEvents.push(log) : console.log("EXPECTED "+fundingSuccessfulEvent+" got: "+log.event)
             donatorOneGasUsed = calculateGas(web3, result);
+            wait(2000)
             return projectInstance.fund(donatorTwo, {from:donatorTwo, value:web3.toWei(1)})
         }).then(function(result){
-            result.logs[0].event === 'fundingSuccessful' ? fundingEvents.push(result.logs[0]) : console.log(result.logs[0].event)
+            var log = result.logs[1]
+            log.event === fundingSuccessfulEvent ? fundingEvents.push(log) : console.log("EXPECTED "+fundingSuccessfulEvent+" got: "+log.event)
             donatorTwoGasUsed = calculateGas(web3, result);
-            wait(1000)
             return projectInstance.refund({from:donatorOne})
         }).then(function(result){
             donatorOneGasUsed = donatorOneGasUsed.add(calculateGas(web3, result));

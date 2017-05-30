@@ -7,13 +7,14 @@ contract FundingHub {
   address[] public projectAddresses;
 
   event projectCreatedSuccessfully(address adr);
+  event notFundable();
+  event fundableStatus(bool status);
 
   modifier restricted() { if(msg.sender == owner) _; }
 
   function FundingHub() {
     owner = msg.sender;
   }
-
 
   function getBalance() constant returns (uint256 balance) {
       return this.balance;
@@ -27,14 +28,14 @@ contract FundingHub {
 
   function contribute(address _address) payable {
       Project project = Project(_address);
-      project.fund.gas(140000).value(msg.value)(msg.sender);
+      project.fund.gas(230000).value(msg.value)(msg.sender);
   }
 
-  function getProjects() returns (address[]) {
+  function getProjects() constant returns (address[]) {
       return projectAddresses;
   }
 
-  function kill() restricted {
+  function kill() restricted constant {
        selfdestruct(owner);
    }
 }

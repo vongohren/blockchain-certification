@@ -17,7 +17,7 @@ module.exports = function(deployer, network, accounts) {
             fund = instance;
             return fund.createProject("New house", accounts[0], web3.toWei(100), moment().add(10,'day').format('x')/1000)
         }).then(function(result) {
-            return fund.createProject("Sick dog", accounts[0], web3.toWei(50), moment().add(20,'day').format('x')/1000)
+            return fund.createProject("Sick dog", accounts[0], web3.toWei(4.5), moment().add(20,'day').format('x')/1000)
         })
     }
 };
